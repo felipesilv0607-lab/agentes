@@ -1,0 +1,20 @@
+﻿# Segredos e variáveis de ambiente
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependências e builds
+node_modules/
+dist/
+build/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Arquivos locais de editores e sistema
+.vscode/
+.DS_Store
+Thumbs.db
