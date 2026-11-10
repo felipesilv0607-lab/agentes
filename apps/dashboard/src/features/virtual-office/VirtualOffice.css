@@ -1,0 +1,47 @@
+.virtual-office{display:grid;gap:16px}
+.office-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px}
+.office-heading h2{font-size:20px;margin:5px 0}
+.office-heading p{color:var(--muted);font-size:12px;margin:0}
+.office-eyebrow,.inspector-label{font-size:9px;font-weight:800;letter-spacing:1.2px;color:#8793a5}
+.office-demo-label{border:1px solid #66512d;background:#292317;color:#e8bd70;border-radius:6px;padding:7px 10px;font-size:9px;font-weight:800;letter-spacing:.7px;white-space:nowrap}
+.office-layout{display:grid;grid-template-columns:minmax(0,1fr) 245px;gap:14px;align-items:stretch}
+.office-floor{position:relative;min-height:430px;overflow:hidden;border:1px solid #344052;border-radius:14px;padding:22px;background:linear-gradient(145deg,#202b3b,#131c2a 72%);box-shadow:inset 0 1px rgba(255,255,255,.04)}
+.office-floor:before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(144,165,195,.07) 1px,transparent 1px),linear-gradient(90deg,rgba(144,165,195,.07) 1px,transparent 1px);background-size:34px 34px;transform:perspective(600px) rotateX(12deg) scale(1.2);transform-origin:center;pointer-events:none}
+.office-room-label{position:relative;color:#8291a7;font-size:9px;font-weight:800;letter-spacing:1.6px}
+.office-stations{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;margin:24px auto 20px;max-width:620px}
+.office-station{position:relative;min-height:145px;border:1px solid #3a485c;border-radius:11px;background:rgba(35,48,66,.94);color:#eef3fa;padding:15px 14px 13px 82px;text-align:left;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:5px;transition:border-color .18s,background .18s,transform .18s;box-shadow:0 8px 18px rgba(0,0,0,.14)}
+.office-station:hover{border-color:#8199bd;transform:translateY(-2px)}
+.office-station.selected{border-color:#8ba9ff;background:rgba(48,65,91,.98);box-shadow:0 0 0 2px rgba(116,151,235,.15),0 10px 22px rgba(0,0,0,.2)}
+.agent-avatar,.inspector-avatar{display:grid;place-items:center;border-radius:14px;background:linear-gradient(145deg,#7693d7,#394f83);color:#fff;font-size:25px;font-weight:800;box-shadow:0 7px 14px rgba(0,0,0,.2)}
+.agent-avatar{position:absolute;left:17px;top:21px;width:49px;height:57px}
+.avatar-developer{background:linear-gradient(145deg,#55ad9b,#24665e)}
+.avatar-code-reviewer{background:linear-gradient(145deg,#b38bdb,#654a8b)}
+.avatar-security-reviewer{background:linear-gradient(145deg,#d6a65f,#88602b)}
+.station-monitor{position:absolute;left:28px;bottom:18px;width:29px;height:19px;border:2px solid #9aabc2;border-radius:3px;background:#172536;padding:3px;display:flex;gap:2px}
+.station-monitor span{height:3px;flex:1;background:#72a5db;border-radius:2px}
+.station-desk{position:absolute;left:15px;bottom:13px;width:55px;height:4px;background:#71839b;border-radius:3px}
+.station-copy strong{font-size:12px}
+.station-copy small{color:#aab6c8;font-size:10px}
+.agent-status,.inspector-status{display:inline-flex;align-items:center;gap:6px;font-size:9px;font-weight:700}
+.agent-status{margin-top:5px}
+.agent-status i,.inspector-status i{width:6px;height:6px;border-radius:50%;background:currentColor}
+.status-working{color:#6dd2a8}
+.status-thinking{color:#8eb6ff}
+.status-waiting{color:#c2ad78}
+.status-paused{color:#a4aabd}
+.status-resting{color:#80c6d2}
+.status-completed{color:#83d3a0}
+.status-error{color:#ff8e8e}
+.office-floor-note{position:relative;margin-top:16px;text-align:center;color:#8d9bb0;font-size:10px}
+.agent-inspector{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:20px;display:flex;flex-direction:column;align-items:flex-start;min-width:0}
+.inspector-avatar{width:55px;height:60px;margin:17px 0 10px}
+.agent-inspector h3{font-size:16px;margin:0 0 4px;color:inherit}
+.inspector-role{font-size:11px;color:var(--muted);margin:0 0 12px}
+.inspector-status{padding:6px 8px;border-radius:5px;background:#f3f5f8}
+.inspector-divider{width:100%;height:1px;background:var(--line);margin:17px 0}
+.inspector-task{font-size:11px;line-height:1.55;margin:7px 0 17px;color:inherit}
+.inspector-time{font-size:11px;color:var(--muted);margin:7px 0 0}
+.inspector-source{margin-top:auto;padding-top:20px;color:var(--muted);font-size:9px;letter-spacing:.5px}
+.office-summary{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px}
+@media(max-width:900px){.office-layout{grid-template-columns:1fr}.agent-inspector{min-height:220px}.inspector-source{margin-top:16px}}
+@media(max-width:560px){.office-heading{align-items:flex-start;flex-direction:column}.office-floor{padding:15px;min-height:0}.office-stations{grid-template-columns:1fr;gap:11px;margin-top:18px}.office-station{min-height:125px}.office-summary{flex-direction:column}.office-demo-label{align-self:flex-start}}

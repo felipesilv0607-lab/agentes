@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { activities, metrics, navigation } from "./mocks/dashboard";
+import { navigation } from "./mocks/dashboard";
+import { VirtualOffice } from "./features/virtual-office/VirtualOffice";
 import type { PanelId } from "./types/dashboard";
 
 const panelCopy: Record<PanelId, { title: string; description: string }> = {
@@ -39,19 +40,7 @@ function App() {
         <div className="page-heading"><div><div className="eyebrow">CENTRAL DE OPERAÇÕES</div>
           <h1>{current.title}</h1><p>{current.description}</p></div><span className="demo-badge"><span /> MODO DEMO</span></div>
 
-        {activePanel === "monitoring" && <>
-          <div className="metric-grid">{metrics.map(metric => <article className="metric-card" key={metric.label}>
-            <span className="metric-label">{metric.label}</span><strong className="metric-value">{metric.value}</strong>
-            <span className="metric-detail">{metric.detail}</span></article>)}</div>
-          <section className="content-card"><div className="card-heading"><div><h2>Atividade recente</h2>
-            <p>Eventos ilustrativos do ambiente DEMO</p></div><span className="subtle-tag">Últimos eventos</span></div>
-            <div className="activity-list">{activities.map(activity => <div className="activity-row" key={activity.title}>
-              <span className="activity-dot" /><div className="activity-main"><strong>{activity.title}</strong>
-                <span>{activity.description}</span></div>
-              <span className={`status status-${activity.status === "Concluído" ? "done" : activity.status === "Em revisão" ? "review" : "waiting"}`}>{activity.status}</span>
-              <time>{activity.time}</time></div>)}</div>
-          </section>
-        </>}
+        {activePanel === "monitoring" && <VirtualOffice />}
         {activePanel === "security" && <section className="content-card panel-card">
           <div className="panel-icon security-icon">◇</div><div><h2>Baseline de segurança</h2><p>16 categorias definidas no padrão global do Agente.s.</p></div>
           <div className="category-grid">{["Aplicação","Autenticação","Autorização","Dados e privacidade","Segredos","API e comunicação","Infraestrutura","Dependências","Código seguro","Testes de segurança","Logs e monitoramento","Resposta a incidentes","Backup e continuidade","Segurança de IA","CI/CD","Governança"].map((item,index) =>
