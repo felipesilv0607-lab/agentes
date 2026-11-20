@@ -1,3 +1,10 @@
+# Restricao tecnica (nao textual): segundo a documentacao oficial do Codex, um
+# arquivo de agente personalizado NAO substitui `sandbox_mode` nem
+# `approval_policy`; o subagente herda o sandbox da sessao pai. Por isso este
+# arquivo nao declara `sandbox_mode` (seria ignorado e daria falsa garantia).
+# Execute revisoes a partir de uma sessao pai somente leitura e sem aprovacoes:
+#   codex exec --sandbox read-only -c approval_policy="never" "<pedido de revisao ao security-reviewer>"
+# Ver README.md, secao "Revisoes somente leitura".
 name = "security-reviewer"
 description = "Revisor independente de seguranca do Agente.s. Analisa arquitetura, codigo, dependencias, dados, APIs, infraestrutura e as 16 categorias do padrao global."
 

@@ -21,7 +21,6 @@ export interface Agent {
   role: string;
   status: AgentStatus;
   currentTask: string | null;
-  modelPath: string;
   animation: AgentAnimation;
   lastActivity: string;
 }

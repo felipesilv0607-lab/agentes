@@ -23,3 +23,7 @@ Thumbs.db
 *.tsbuildinfo
 
 agentes-dashboard-inicial.zip
+
+# Scripts auxiliares locais de aplicação de patches (não publicar).
+# Padrão específico: não afeta outros scripts .ps1 legítimos do projeto.
+Apply-Agentes-*.ps1

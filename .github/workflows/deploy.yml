@@ -1,61 +1,149 @@
 
 name: Deploy Agente.s Dashboard
 
+# Sem filtro de caminhos: os testes leem AGENTS.md, standards/, docs/, scripts/
+# e todos os arquivos de texto rastreados (teste de codificação). Qualquer
+# alteração na main precisa passar pela verificação antes da publicação.
 on:
   push:
     branches:
       - main
-    paths:
-      - "apps/dashboard/**"
-      - ".github/workflows/deploy.yml"
   workflow_dispatch:
 
+# Menor privilégio: somente leitura por padrão; o job de deploy recebe as
+# permissões de Pages/OIDC de forma explícita.
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
-concurrency:
-  group: github-pages
-  cancel-in-progress: true
+# Sem `concurrency` no nível do workflow: a verificação (verify-and-build) roda
+# livremente, inclusive em workflow_dispatch de outras branches, e não entra na
+# fila de publicação. O controle de concorrência fica somente no job `deploy`.
 
 jobs:
-  build:
+  # Verificação obrigatória. O artefato publicado é exatamente o que foi
+  # verificado neste job (o deploy depende dele via `needs`).
+  verify-and-build:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        # actions/checkout v7.0.1 (Node 24)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        # actions/setup-node v7.1.0 (Node 24)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
         with:
           node-version: 24
           cache: npm
           cache-dependency-path: apps/dashboard/package-lock.json
 
+      - name: Contract, security baseline and encoding tests
+        run: node --test scripts/contract.test.mjs scripts/security-baseline.test.mjs scripts/encoding.test.mjs
+
       - name: Install dependencies
         working-directory: apps/dashboard
         run: npm ci
+
+      - name: Dependency audit
+        # Bloqueia vulnerabilidades altas e críticas (SECURITY-BASELINE §4).
+        # Médias e baixas aparecem no log e devem ser registradas e tratadas.
+        working-directory: apps/dashboard
+        run: npm audit --audit-level=high
+
+      - name: Typecheck
+        working-directory: apps/dashboard
+        run: npm run typecheck
 
       - name: Build dashboard
         working-directory: apps/dashboard
         run: npm run build
 
+      - name: Verify CSP meta tag in build output
+        # O Vite escreve as aspas simples da política como &#39; no HTML gerado.
+        working-directory: apps/dashboard
+        run: |
+          grep -q 'http-equiv="Content-Security-Policy"' dist/index.html
+          grep -q "script-src &#39;self&#39;;" dist/index.html
+          grep -q "object-src &#39;none&#39;;" dist/index.html
+          if grep -q "unsafe-inline\|unsafe-eval" dist/index.html; then
+            echo "CSP contém unsafe-inline ou unsafe-eval" >&2
+            exit 1
+          fi
+
       - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
+        # actions/upload-pages-artifact v5.0.0 (composta; fixa upload-artifact v7 por SHA, Node 24).
+        # v4+ exclui arquivos ocultos do artefato; o dist/ não contém nenhum.
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: apps/dashboard/dist
 
   deploy:
+    needs: verify-and-build
+    # Só executa se a verificação passou (success() explícito) e se a execução
+    # é da main. Defesa em profundidade: além da regra do environment
+    # github-pages (somente main), o próprio workflow só publica a partir da
+    # main, inclusive em workflow_dispatch disparado em outra branch.
+    if: success() && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    # Uma publicação por vez. cancel-in-progress: false não interrompe um deploy
+    # em andamento (recomendação do exemplo oficial do Pages). Como só jobs de
+    # deploy da main entram neste grupo, uma verificação de outra branch não
+    # cancela uma publicação pendente. A ordem de publicação é garantida pelo
+    # passo "Check commit is current main HEAD", executado dentro do grupo.
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+
+    permissions:
+      pages: write
+      id-token: write
+
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
-    needs: build
-
     steps:
+      # Impede que um commit antigo seja publicado depois de um mais novo.
+      # Roda dentro do grupo de concorrência, imediatamente antes da publicação:
+      # só publica se este commit ainda for o HEAD da main. Commit desatualizado
+      # => publish=false e o passo de deploy é ignorado (o commit mais novo é
+      # publicado pela execução dele). Falha ao consultar a main => o job falha
+      # e nada é publicado (fail closed). Usa `git ls-remote` sem credenciais
+      # (repositório público), sem permissões adicionais.
+      - name: Check commit is current main HEAD
+        id: freshness
+        env:
+          RUN_SHA: ${{ github.sha }}
+          RUN_REF: ${{ github.ref }}
+          MAIN_REPO_URL: ${{ github.server_url }}/${{ github.repository }}.git
+        run: |
+          set -euo pipefail
+          if [ "$RUN_REF" != "refs/heads/main" ]; then
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy ignorado::execucao fora da main ($RUN_REF)."
+            exit 0
+          fi
+          main_head="$(git ls-remote --exit-code "$MAIN_REPO_URL" refs/heads/main | cut -f1)"
+          if ! [[ "$main_head" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error title=Verificacao de atualidade::HEAD da main invalido: '$main_head'."
+            exit 1
+          fi
+          if [ "$main_head" = "$RUN_SHA" ]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            echo "Commit $RUN_SHA e o HEAD atual da main: publicacao permitida."
+          else
+            echo "publish=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Deploy ignorado (commit desatualizado)::$RUN_SHA nao e o HEAD atual da main ($main_head)."
+          fi
+
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4
+        if: steps.freshness.outputs.publish == 'true'
+        # actions/deploy-pages v5.0.1 (Node 24)
+        uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346

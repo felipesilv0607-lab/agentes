@@ -32,6 +32,12 @@
 .status-resting{color:#80c6d2}
 .status-completed{color:#83d3a0}
 .status-error{color:#ff8e8e}
+.office-agent-picker{position:relative;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-top:10px}
+.office-agent-option{display:grid;gap:4px;justify-items:start;min-height:44px;border:1px solid #3a485c;border-radius:8px;background:rgba(35,48,66,.94);color:#eef3fa;padding:8px 10px;text-align:left;cursor:pointer;font-size:11px}
+.office-agent-option:hover{border-color:#8199bd}
+.office-agent-option.is-selected{border-color:#8ba9ff;background:rgba(48,65,91,.98);box-shadow:0 0 0 2px rgba(116,151,235,.2)}
+.office-agent-option:focus-visible{outline:3px solid #ffd27a;outline-offset:2px}
+.office-agent-option .agent-status{margin-top:0;padding:0;background:transparent}
 .office-floor-note{position:relative;margin-top:16px;text-align:center;color:#8d9bb0;font-size:10px}
 .agent-inspector{border:1px solid var(--line);border-radius:12px;background:var(--surface);padding:20px;display:flex;flex-direction:column;align-items:flex-start;min-width:0}
 .inspector-avatar{width:55px;height:60px;margin:17px 0 10px}
@@ -44,4 +50,4 @@
 .inspector-source{margin-top:auto;padding-top:20px;color:var(--muted);font-size:9px;letter-spacing:.5px}
 .office-summary{display:flex;justify-content:space-between;gap:12px;color:var(--muted);font-size:10px}
 @media(max-width:900px){.office-layout{grid-template-columns:1fr}.agent-inspector{min-height:220px}.inspector-source{margin-top:16px}}
-@media(max-width:560px){.office-heading{align-items:flex-start;flex-direction:column}.office-floor{padding:15px;min-height:0}.office-stations{grid-template-columns:1fr;gap:11px;margin-top:18px}.office-station{min-height:125px}.office-summary{flex-direction:column}.office-demo-label{align-self:flex-start}}
+@media(max-width:560px){.office-heading{align-items:flex-start;flex-direction:column}.office-floor{padding:15px;min-height:0}.office-stations{grid-template-columns:1fr;gap:11px;margin-top:18px}.office-station{min-height:125px}.office-summary{flex-direction:column}.office-demo-label{align-self:flex-start}.office-agent-picker{grid-template-columns:repeat(2,minmax(0,1fr))}}

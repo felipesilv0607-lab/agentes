@@ -52,7 +52,7 @@ export function VirtualOffice() {
       </div>
 
       <div className="office-layout">
-        <div className="office-floor" aria-label="Estações de trabalho dos agentes">
+        <div className="office-floor" role="group" aria-label="Estações de trabalho dos agentes">
           <Suspense
         fallback={
        <div className="office-scene" role="status">
@@ -66,6 +66,33 @@ export function VirtualOffice() {
     onSelect={setSelectedAgentId}
   />
 </Suspense>
+          <div
+            className="office-agent-picker"
+            role="group"
+            aria-label="Selecionar agente (alternativa acessível ao escritório 3D)"
+          >
+            {snapshot.agents.map((agent) => {
+              const isSelected = agent.id === selectedAgent?.id;
+              return (
+                <button
+                  key={agent.id}
+                  type="button"
+                  className={`office-agent-option${isSelected ? " is-selected" : ""}`}
+                  // Seleção única: indica o agente atual (aria-pressed sugeriria
+                  // um botão liga/desliga, mas clicar no selecionado não o desmarca).
+                  aria-current={isSelected ? "true" : undefined}
+                  aria-label={`${agent.name}, ${agent.role}, estado: ${statusLabels[agent.status]}`}
+                  onClick={() => setSelectedAgentId(agent.id)}
+                >
+                  <strong>{agent.name}</strong>
+                  <span className={`agent-status status-${statusClasses[agent.status]}`}>
+                    <i aria-hidden="true" />
+                    {statusLabels[agent.status]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
           <div className="office-floor-note">
           Ambiente 3D demonstrativo. Os agentes e suas atividades utilizam dados simulados.
         </div>

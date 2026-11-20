@@ -14,7 +14,7 @@ export class DemoAgentProvider implements AgentProvider {
   }
 
   subscribe(_listener: (snapshot: AgentSnapshot) => void): () => void {
-    // A demonstração é estática nesta etapa; nÃ£o simula eventos em tempo real.
+    // A demonstração é estática nesta etapa; não simula eventos em tempo real.
     return () => undefined;
   }
 }

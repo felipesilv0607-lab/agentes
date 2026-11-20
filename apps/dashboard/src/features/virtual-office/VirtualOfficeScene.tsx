@@ -628,7 +628,12 @@ export function VirtualOfficeScene(
   return (
     <div
       className="office-scene"
-      aria-label="Escritório virtual 3D interativo"
+      // A cena 3D é apenas visual para tecnologias assistivas (o canvas não é
+      // operável por teclado). role="img" dá significado ao aria-label e evita
+      // que os rótulos 3D sejam lidos em duplicidade; a seleção acessível fica
+      // nos botões do seletor de agentes.
+      role="img"
+      aria-label="Escritório virtual 3D com os agentes em suas estações. Use os botões de seleção de agente abaixo da cena."
     >
       <div
         ref={setHtmlPortal}
