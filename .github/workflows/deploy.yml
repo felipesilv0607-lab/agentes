@@ -129,7 +129,9 @@ jobs:
             echo "::notice title=Deploy ignorado::execucao fora da main ($RUN_REF)."
             exit 0
           fi
-          main_head="$(git ls-remote --exit-code "$MAIN_REPO_URL" refs/heads/main | cut -f1)"
+          # O padrão do ls-remote casa por sufixo (ex.: refs/heads/x/refs/heads/main);
+          # o awk aceita somente a referência exata refs/heads/main.
+          main_head="$(git ls-remote --exit-code "$MAIN_REPO_URL" refs/heads/main | awk '$2 == "refs/heads/main" { print $1 }')"
           if ! [[ "$main_head" =~ ^[0-9a-f]{40}$ ]]; then
             echo "::error title=Verificacao de atualidade::HEAD da main invalido: '$main_head'."
             exit 1
