@@ -1,6 +1,9 @@
 import { lazy, Suspense, useState } from "react";
 import { DemoAgentProvider } from "../../services/agents/DemoAgentProvider";
-import type { AgentStatus } from "../../types/agent";
+import {
+  agentStatusClassNames as statusClasses,
+  agentStatusLabels as statusLabels,
+} from "../../data/agentStatus";
 import "./VirtualOffice.css";
 
 const VirtualOfficeScene = lazy(() =>
@@ -11,26 +14,6 @@ const VirtualOfficeScene = lazy(() =>
 
 const provider = new DemoAgentProvider();
 const snapshot = provider.getSnapshot();
-
-const statusLabels: Record<AgentStatus, string> = {
-  working: "Trabalhando",
-  thinking: "Pensando",
-  waiting: "Aguardando",
-  paused: "Pausado",
-  resting: "Descansando",
-  completed: "Concluído",
-  error: "Com erro",
-};
-
-const statusClasses: Record<AgentStatus, string> = {
-  working: "working",
-  thinking: "thinking",
-  waiting: "waiting",
-  paused: "paused",
-  resting: "resting",
-  completed: "completed",
-  error: "error",
-};
 
 export function VirtualOffice() {
   const [selectedAgentId, setSelectedAgentId] = useState<string>(
