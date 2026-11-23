@@ -3,7 +3,12 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { useCallback, useRef } from "react";
 import type { RefObject } from "react";
 import * as THREE from "three";
-import type { Agent, AgentStatus } from "../../types/agent";
+import { agentCatalog } from "../../data/agentCatalog";
+import {
+  agentStatusLabels as statusLabels,
+  agentStatusSceneColors as statusColors,
+} from "../../data/agentStatus";
+import type { Agent } from "../../types/agent";
 import "./VirtualOfficeScene.css";
 
 interface VirtualOfficeSceneProps {
@@ -13,32 +18,14 @@ interface VirtualOfficeSceneProps {
   htmlPortal: RefObject<HTMLElement>;
 }
 
-const agentColors: Record<string, string> = {
-  coordinator: "#7798e8",
-  developer: "#54b99f",
-  "code-reviewer": "#b18ad9",
-  "security-reviewer": "#d6a45e",
-};
+// Cor de identidade e nome vindos do catálogo único (data/agentCatalog.ts).
+const agentColors: Record<string, string> = Object.fromEntries(
+  agentCatalog.map((definition) => [definition.id, definition.accentColor]),
+);
 
-const statusLabels: Record<AgentStatus, string> = {
-  working: "Trabalhando",
-  thinking: "Pensando",
-  waiting: "Aguardando",
-  paused: "Pausado",
-  resting: "Descansando",
-  completed: "Concluído",
-  error: "Com erro",
-};
-
-const statusColors: Record<AgentStatus, string> = {
-  working: "#55d6a2",
-  thinking: "#8db5ff",
-  waiting: "#d7bd7c",
-  paused: "#a5adbd",
-  resting: "#79c8d5",
-  completed: "#83d3a0",
-  error: "#ff8585",
-};
+const fallbackNames: Record<string, string> = Object.fromEntries(
+  agentCatalog.map((definition) => [definition.id, definition.name]),
+);
 
 const skinColor = "#e8b99a";
 
@@ -131,13 +118,6 @@ function CartoonAgent({
 
   const color = agentColors[agent.id] ?? "#7798e8";
   const statusColor = statusColors[agent.status] ?? "#8db5ff";
-
-  const fallbackNames: Record<string, string> = {
-    coordinator: "Coordinator",
-    developer: "Developer",
-    "code-reviewer": "Code Reviewer",
-    "security-reviewer": "Security Reviewer",
-  };
 
   const displayName =
     typeof agent.name === "string" && agent.name.trim().length > 0

@@ -4,8 +4,17 @@ name: Deploy Agente.s Dashboard
 # Sem filtro de caminhos: os testes leem AGENTS.md, standards/, docs/, scripts/
 # e todos os arquivos de texto rastreados (teste de codificação). Qualquer
 # alteração na main precisa passar pela verificação antes da publicação.
+#
+# pull_request (para a main): executa somente as verificações
+# (verify-and-build e scope-checker-tests). O job deploy é excluído
+# explicitamente nesse evento (ver o `if` do job) e, além disso, a ref de um PR
+# (refs/pull/<n>/merge) nunca é refs/heads/main. Em PRs de forks o GitHub
+# fornece token somente leitura e não expõe segredos.
 on:
   push:
+    branches:
+      - main
+  pull_request:
     branches:
       - main
   workflow_dispatch:
@@ -39,10 +48,26 @@ jobs:
         with:
           node-version: 24
           cache: npm
-          cache-dependency-path: apps/dashboard/package-lock.json
+          cache-dependency-path: |
+            apps/dashboard/package-lock.json
+            apps/runtime/package-lock.json
 
-      - name: Contract, security baseline and encoding tests
-        run: node --test scripts/contract.test.mjs scripts/security-baseline.test.mjs scripts/encoding.test.mjs
+      - name: Repository tests (contracts, baseline, encoding, catalog, adapters)
+        # Em Linux os testes de links simbólicos de arquivo do gerador também rodam
+        # (no Windows sem privilégio eles são pulados).
+        run: >-
+          node --test
+          scripts/contract.test.mjs
+          scripts/security-baseline.test.mjs
+          scripts/encoding.test.mjs
+          scripts/agent-catalog.test.mjs
+          scripts/agent-adapters.test.mjs
+          scripts/contracts-package.test.mjs
+
+      - name: Agent adapters parity
+        # Os adaptadores (.codex/agents e o catálogo do dashboard) precisam ser
+        # idênticos aos gerados pelo catálogo neutro.
+        run: node scripts/generate-agent-adapters.mjs --check
 
       - name: Install dependencies
         working-directory: apps/dashboard
@@ -57,6 +82,29 @@ jobs:
       - name: Typecheck
         working-directory: apps/dashboard
         run: npm run typecheck
+
+      - name: Typecheck shared packages
+        # Reutiliza o TypeScript instalado no dashboard (sem duplicar o compilador).
+        run: |
+          node apps/dashboard/node_modules/typescript/bin/tsc -p packages/contracts/tsconfig.json
+          node apps/dashboard/node_modules/typescript/bin/tsc -p packages/agent-catalog/tsconfig.json
+
+      - name: Install runtime dev dependencies
+        # Somente @types/node (desenvolvimento); scripts de instalação desativados.
+        working-directory: apps/runtime
+        run: npm ci --ignore-scripts
+
+      - name: Runtime dependency audit
+        working-directory: apps/runtime
+        run: npm audit --audit-level=high
+
+      - name: Runtime typecheck
+        working-directory: apps/runtime
+        run: npm run typecheck
+
+      - name: Runtime tests
+        working-directory: apps/runtime
+        run: npm test
 
       - name: Build dashboard
         working-directory: apps/dashboard
@@ -75,19 +123,46 @@ jobs:
           fi
 
       - name: Upload Pages artifact
+        # Não envia o artefato em pull_request: o PR só verifica e nunca publica.
+        if: github.event_name != 'pull_request'
         # actions/upload-pages-artifact v5.0.0 (composta; fixa upload-artifact v7 por SHA, Node 24).
         # v4+ exclui arquivos ocultos do artefato; o dist/ não contém nenhum.
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9
         with:
           path: apps/dashboard/dist
 
+  # Testes do verificador de escopo (agent-scope-check): ferramenta auxiliar de
+  # detecção, NÃO barreira de segurança. Job separado e fora do `needs` do deploy
+  # até a execução em Linux ser comprovadamente estável; uma falha aqui fica
+  # visível, mas não bloqueia a publicação.
+  scope-checker-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        # actions/checkout v7.0.1 (Node 24)
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+
+      - name: Setup Node.js
+        # actions/setup-node v7.1.0 (Node 24)
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1
+        with:
+          node-version: 24
+
+      - name: Scope checker tests
+        run: node --test scripts/agent-scope-check.test.mjs
+
   deploy:
     needs: verify-and-build
     # Só executa se a verificação passou (success() explícito) e se a execução
     # é da main. Defesa em profundidade: além da regra do environment
     # github-pages (somente main), o próprio workflow só publica a partir da
-    # main, inclusive em workflow_dispatch disparado em outra branch.
-    if: success() && github.ref == 'refs/heads/main'
+    # main, inclusive em workflow_dispatch disparado em outra branch, e nunca
+    # em pull_request (exclusão explícita, além da checagem de ref).
+    if: success() && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
 

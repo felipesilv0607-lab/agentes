@@ -4,6 +4,8 @@
 **Status:** proposta técnica para validação antes da implementação
 **Escopo:** contrato lógico de eventos para uma futura camada de coleta, persistência e visualização do Agente.s.
 
+> **Implementação dos validadores:** `packages/contracts` (envelope, hierarquia de tarefas e controle de versões), exercitados por `scripts/contract.test.mjs` com as fixtures deste documento. Ainda não há produtor real de eventos.
+
 > **Limite importante:** este contrato não afirma que o runtime atual do Codex emita esses eventos. Os exemplos são fixtures sintéticas. Os nomes `coordinator`, `developer` e `code-reviewer` são identificadores ilustrativos, não prova de que o runtime os registre ou permita delegação por esses nomes.
 
 ---

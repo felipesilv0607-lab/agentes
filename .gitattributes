@@ -1,0 +1,8 @@
+# Fontes do catálogo neutro e adaptadores gerados: sempre LF, em qualquer sistema.
+# O gerador (scripts/generate-agent-adapters.mjs --check) compara bytes, o catálogo
+# rejeita instruções com CR e o leitor estático de agent-scope-check.mjs espera o
+# formato literal do catálogo do dashboard. Sem esta regra, um clone no Windows com
+# core.autocrlf=true converteria esses arquivos para CRLF e quebraria a paridade.
+packages/agent-catalog/** text eol=lf
+.codex/agents/*.toml text eol=lf
+apps/dashboard/src/data/agentCatalog.ts text eol=lf
