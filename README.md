@@ -6,7 +6,7 @@ Agente.s é a base de uma fábrica de software assistida por IA: uma equipe de a
 
 A direção aprovada é migrar gradualmente do Codex para um runtime próprio (`docs/architecture/adr-0001-runtime-proprio.md`; mapa em `docs/project-map.md`). **Nenhum agente autônomo executa**: o runtime ainda não chama modelos, não executa ferramentas e não escreve arquivos.
 
-Legenda: **Implementado e testado** (código com testes automatizados executados localmente e configurados no CI; a execução remota do CI atualizado ainda está pendente); **Parcial** (existe, mas sem a integração que o torna efetivo); **Planejado** (decisão aprovada, sem código); **Pendente de validação independente** (sem revisão independente de código e de segurança).
+Legenda: **Implementado e testado** (código com testes automatizados executados localmente e no CI do GitHub; primeira execução remota: run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602), 2026-11-23, com sucesso); **Parcial** (existe, mas sem a integração que o torna efetivo); **Planejado** (decisão aprovada, sem código); **Pendente de validação independente** (sem revisão independente de código e de segurança).
 
 | Componente | Estado |
 |---|---|
@@ -15,7 +15,7 @@ Legenda: **Implementado e testado** (código com testes automatizados executados
 | Contratos (`packages/contracts`): eventos e API REST/SSE | Implementado e testado; nenhum produtor real de eventos |
 | Runtime (`apps/runtime`): API REST + SSE somente leitura em loopback, token local, Event Store em memória | Implementado e testado (uso local) |
 | Permission Engine (negação por padrão) | **Parcial**: decide e é testado, mas nenhum executor o consulta ainda; não é barreira comprovada para execução real. Listas de governança e de leitura com lacunas conhecidas (A-M3), **adiadas por decisão humana e não corrigidas** |
-| CI (`.github/workflows/deploy.yml`): testes, paridade, typecheck, auditoria e testes do runtime; executa em `push` na `main`, `pull_request` para a `main` (sem publicar) e `workflow_dispatch` | Implementado e validado localmente; **execução no GitHub pendente** (depende de commit e push; ver "Caminho de validação do CI") |
+| CI (`.github/workflows/deploy.yml`): testes, paridade, typecheck, auditoria e testes do runtime; executa em `push` na `main`, `pull_request` para a `main` (sem publicar) e `workflow_dispatch` | Implementado e validado localmente e no GitHub Actions: run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602) (PR #1, evento `pull_request`, commit `47838f9`, 2026-11-23 19:29 UTC), `verify-and-build` e `scope-checker-tests` com sucesso e `deploy` ignorado (ver "Caminho de validação do CI") |
 | Dashboard (`apps/dashboard`): dados **sintéticos (DEMO)**, escritório virtual 3D, seletor com os nove agentes | Implementado; a cena 3D exibe somente quatro agentes (ver "Limitação da cena 3D") |
 | Regras (`AGENTS.md`) e padrões (`standards/`) | Documentados; os testes verificam o texto, não a aplicação técnica |
 | Model Gateway (Bloco 3), integração do dashboard com o runtime (Bloco 4), execução de tarefas e ferramentas (Bloco 5), isolamento Docker (Bloco 6), PostgreSQL e VPS (Bloco 7) | Planejado; **não implementado** |
@@ -203,7 +203,7 @@ O workflow executa em três eventos:
 | `pull_request` para a `main` | `verify-and-build`, `scope-checker-tests` | **Não**: o `deploy` é excluído explicitamente nesse evento |
 | `workflow_dispatch` | `verify-and-build`, `scope-checker-tests`; `deploy` só na `main` | Somente na `main` |
 
-Caminho recomendado para a primeira validação remota: enviar uma branch e abrir um PR para a `main`. Até lá, a validação é **somente local**.
+Primeira validação remota feita por esse caminho: PR #1 (`feat/runtime-blocks-1-2` → `main`), run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602), em 2026-11-23 19:29 UTC, concluída com sucesso: no CI Ubuntu, testes de `scripts/` 111/111 (0 falhas, 0 ignorados; inclusive os testes de link simbólico de arquivo, que só são ignorados na execução local no Windows, por falta de privilégio para criar symlinks), verificador de escopo 59/59 e runtime 62/62 (ambos com 0 falhas e 0 ignorados), paridade dos 10 adaptadores, typecheck, build, CSP e `npm audit` (0 vulnerabilidades) sem falhas; `deploy` e envio do artefato do Pages ignorados. Nada foi publicado.
 
 ## Publicação
 
@@ -217,4 +217,4 @@ Hoje: uso legado no Codex (ver "Uso legado com o Codex") e o runtime próprio so
 
 Bloco 3 da migração (ADR 0001): Model Gateway com Ollama (local), OpenAI e Anthropic atrás de uma interface comum, com chaves somente no ambiente do runtime, sem rota HTTP que acione modelos e com a capacidade `model` liberada no Permission Engine somente por decisão explícita.
 
-Pendências que continuam abertas: revisão independente dos Blocos 1 e 2, observação da primeira execução do CI atualizado, teste ponta a ponta do sandbox dos revisores no Codex (F0) e proteção da `main`.
+Pendências que continuam abertas: revisão independente dos Blocos 1 e 2 (aceite humano), teste ponta a ponta do sandbox dos revisores no Codex (F0) e proteção da `main`.

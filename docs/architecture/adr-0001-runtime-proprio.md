@@ -96,7 +96,7 @@ Princípios aplicados à redação: nenhuma responsabilidade, permissão, escopo
 
 ### Integração ao CI
 
-No job `verify-and-build` (do qual o `deploy` depende): testes de contrato, baseline, codificação, catálogo, adaptadores e contratos compartilhados; `generate-agent-adapters.mjs --check`; typecheck do dashboard e dos pacotes (com o TypeScript do dashboard); `npm ci --ignore-scripts`, `npm audit --audit-level=high`, typecheck e testes do runtime; cache de npm com os lockfiles do dashboard e do runtime. Em Linux, os testes de links simbólicos de arquivo do gerador também executam. `scripts/agent-scope-check.test.mjs` roda no job separado `scope-checker-tests`, fora do `needs` do deploy. O fluxo de publicação (freshness check, concorrência, ambiente `github-pages`) não foi alterado.
+No job `verify-and-build` (do qual o `deploy` depende): testes de contrato, baseline, codificação, catálogo, adaptadores e contratos compartilhados; `generate-agent-adapters.mjs --check`; typecheck do dashboard e dos pacotes (com o TypeScript do dashboard); `npm ci --ignore-scripts`, `npm audit --audit-level=high`, typecheck e testes do runtime; cache de npm com os lockfiles do dashboard e do runtime. No CI (Ubuntu), os testes de links simbólicos de arquivo do gerador executam e passaram na run `45249410602` (111/111, 0 ignorados); só na execução local no Windows eles são ignorados, por falta de privilégio para criar symlinks. `scripts/agent-scope-check.test.mjs` roda no job separado `scope-checker-tests`, fora do `needs` do deploy. O fluxo de publicação (freshness check, concorrência, ambiente `github-pages`) não foi alterado.
 
 ### Revisão técnica e de segurança (consolidação)
 
@@ -107,7 +107,7 @@ No job `verify-and-build` (do qual o `deploy` depende): testes de contrato, base
 | Baixa | Servidor sem limite de conexões TCP simultâneas | `maxConnections` (padrão 128, configurável só por opção de código); teste dedicado com limite 3 desde a validação final |
 | Informativo | `requestTimeout` de 15 s poderia encerrar streams SSE longos | Verificado: um stream de 22 s permaneceu aberto com heartbeats; sem mudança |
 
-Verificado sem achados: geração e leitura sem seguir links (testes de junction no Windows e de symlink de arquivo no Linux pelo CI), validação do catálogo e das instruções, timestamps de calendário, token Bearer (tempo constante, nunca em log ou resposta), `Host`/`Origin` e DNS rebinding, caminhos não canônicos, decisões do Permission Engine (negação por padrão; escrita no repositório original, publicação, comandos, rede e modelos sempre decididos como negados; nenhum executor as aplica), idempotência e capacidade do Event Store, encerramento de streams, erros sem detalhes internos e restrição a loopback.
+Verificado sem achados: geração e leitura sem seguir links (testes de junction na execução local no Windows; testes de symlink de arquivo no CI Ubuntu, aprovados na run `45249410602`), validação do catálogo e das instruções, timestamps de calendário, token Bearer (tempo constante, nunca em log ou resposta), `Host`/`Origin` e DNS rebinding, caminhos não canônicos, decisões do Permission Engine (negação por padrão; escrita no repositório original, publicação, comandos, rede e modelos sempre decididos como negados; nenhum executor as aplica), idempotência e capacidade do Event Store, encerramento de streams, erros sem detalhes internos e restrição a loopback.
 
 Limitação registrada: o Permission Engine **não é barreira comprovada para execução real** enquanto não estiver integrado a um executor (Blocos 5 e 6).
 
@@ -130,11 +130,11 @@ Revisão somente leitura feita **pelo próprio implementador** (mesmo agente que
 
 - Aprovação humana da instrução do `coordinator`: registrada acima.
 - CI: gatilho `pull_request` (para a `main`) adicionado. Em PR rodam `verify-and-build` e `scope-checker-tests`; o `deploy` tem `github.event_name != 'pull_request'` no `if`, além da checagem de `refs/heads/main` e da regra do ambiente `github-pages`. Nenhuma permissão de job de validação foi ampliada.
-- Validação **local**: testes, paridade, typecheck, build, auditoria e validação estrutural do workflow, com simulação das condições dos jobs por evento. Validação **remota** (GitHub Actions): **pendente**; o workflow novo só executa depois de commit e push.
+- Validação **local**: testes, paridade, typecheck, build, auditoria e validação estrutural do workflow, com simulação das condições dos jobs por evento. Validação **remota** (GitHub Actions): run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602) (PR #1, evento `pull_request`, commit `47838f9`, 2026-11-23 19:29 UTC), concluída com sucesso: no CI Ubuntu, testes de `scripts/` 111/111 (0 falhas, 0 ignorados; inclusive os testes de link simbólico de arquivo, que só são ignorados na execução local no Windows, por falta de privilégio para criar symlinks), verificador de escopo 59/59 e runtime 62/62 (ambos com 0 falhas e 0 ignorados), paridade dos 10 adaptadores, typecheck, build, CSP e `npm audit` (0 vulnerabilidades) sem falhas; `deploy` e envio do artefato do Pages ignorados.
 - Revisão independente: solicitada a dois revisores somente leitura em contextos isolados (subagentes). São do mesmo modelo do implementador, sem o contexto da implementação; não substituem uma revisão humana. Resultados em "Revisões independentes do fechamento" (abaixo).
 - Permission Engine: decide e é testado, mas **não é barreira de execução comprovada** enquanto nenhum executor o consultar (Blocos 5 e 6).
 
-Pendências para aprovação formal: (1) primeira execução do CI no GitHub, por PR, sem falhas; (2) aceite humano das revisões. B-M1 foi corrigido; A-M3 foi adiado por decisão humana (ver "Pendência adiada: A-M3").
+Pendências para aprovação formal: aceite humano das revisões. A primeira execução do CI no GitHub, por PR, foi concluída sem falhas (run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602), 2026-11-23). B-M1 foi corrigido; A-M3 foi adiado por decisão humana (ver "Pendência adiada: A-M3").
 
 ### Revisões independentes do fechamento
 
@@ -181,6 +181,6 @@ Dois revisores somente leitura, em contextos isolados sem o histórico da implem
 
 - O catálogo neutro passa a ser arquivo de governança pela política, mas **não** está na lista de `scripts/agent-scope-check.mjs` (por decisão, o verificador não foi ampliado). Alterações nele por um agente escritor de escopo amplo são percebidas indiretamente: o teste `scripts/agent-adapters.test.mjs` falha se os adaptadores não forem regenerados, e a regeneração altera arquivos que o verificador protege. Mudanças só no código do validador do pacote não são detectadas por esse caminho; a proteção efetiva dependerá do Permission Engine integrado a um executor e do isolamento (Blocos 5 e 6) e, até lá, de revisão humana.
 - O formato literal de `agentCatalog.ts` continua acoplado ao leitor estático do verificador; um teste confere que ambos obtêm o mesmo `writeScope`.
-- O CI atualizado ainda não foi observado no GitHub; a primeira execução após o commit precisa ser conferida.
+- O CI atualizado foi executado no GitHub sem falhas (run [`45249410602`](https://github.com/felipesilv0607-lab/agentes/actions/runs/45249410602), PR #1, 2026-11-23). O verificador de escopo continua em job separado, fora do caminho de publicação, até decisão sobre promovê-lo.
 - A revisão dos Blocos 1 e 2 foi feita por dois revisores em contextos isolados, do mesmo modelo do implementador; o aceite humano dessa revisão ainda está pendente.
 - A-M3 (lacunas nas listas de governança e de leitura do Permission Engine) está adiado por decisão humana e não corrigido.
