@@ -28,15 +28,17 @@ export type AgentTeam = "planning" | "build" | "quality" | "knowledge";
  * leitura").
  * - read-only: não altera arquivos.
  * - workspace-write: altera arquivos do workspace dentro do escopo autorizado.
- * - tests-only: escreve somente testes (papel planejado: QA Engineer).
- * - ci-cd-without-publish: altera CI/CD e infraestrutura, sem autorização
- *   própria para push ou deploy (papel planejado: DevOps Engineer).
+ * - tests-only: escreve somente testes e fixtures autorizados (QA Engineer).
+ * - ci-cd-without-publish: altera somente workflows de CI/CD, sem autorização
+ *   própria para push, deploy, PR ou workflow_dispatch (DevOps Engineer).
+ * - docs-only: altera somente documentação (Documentation Engineer).
  */
 export type AgentAccessMode =
   | "read-only"
   | "workspace-write"
   | "tests-only"
-  | "ci-cd-without-publish";
+  | "ci-cd-without-publish"
+  | "docs-only";
 
 /** Definição estática de um agente: fonte única usada pelo dashboard. */
 export interface AgentDefinition {
@@ -48,6 +50,18 @@ export interface AgentDefinition {
   role: string;
   team: AgentTeam;
   accessMode: AgentAccessMode;
+  /**
+   * Caminhos (globs relativos à raiz do repositório) que o papel pode alterar.
+   * Usado por `scripts/agent-scope-check.mjs`, que DETECTA alterações fora do
+   * escopo depois da tarefa, mas não impede tecnicamente a escrita.
+   * - `read-only`: lista vazia.
+   * - `workspace-write`: `["**"]` (qualquer caminho do repositório).
+   * - demais modos: globs específicos (`**` = qualquer subcaminho, `*` =
+   *   qualquer trecho sem `/`); entradas iniciadas por `!` são exclusões.
+   * Independentemente do escopo, arquivos de governança (catálogo, tipos,
+   * política, `.codex/` e o próprio verificador) são protegidos pelo verificador.
+   */
+  writeScope: readonly string[];
   /** Cor de identidade do agente (hex). */
   accentColor: string;
   /** Responsabilidades resumidas do papel. */

@@ -32,6 +32,36 @@ const demoRuntimeState: Record<CatalogAgentId, AgentRuntimeState> = {
     animation: "celebrating",
     lastActivity: "09:18",
   },
+  architect: {
+    status: "thinking",
+    currentTask: "Avaliando o contrato de eventos para a futura Bridge",
+    animation: "thinking",
+    lastActivity: "09:38",
+  },
+  "qa-engineer": {
+    status: "working",
+    currentTask: "Ampliando os testes de regressão do catálogo",
+    animation: "typing",
+    lastActivity: "09:41",
+  },
+  "devops-engineer": {
+    status: "waiting",
+    currentTask: "Aguardando revisão de segurança do workflow",
+    animation: "idle",
+    lastActivity: "09:30",
+  },
+  "documentation-engineer": {
+    status: "paused",
+    currentTask: "Aguardando evidências para atualizar a documentação",
+    animation: "idle",
+    lastActivity: "09:25",
+  },
+  "accessibility-ux-reviewer": {
+    status: "resting",
+    currentTask: null,
+    animation: "idle",
+    lastActivity: "09:10",
+  },
 };
 
 export const demoAgents: readonly Agent[] = agentCatalog.map((definition) => ({
