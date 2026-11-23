@@ -1,0 +1,116 @@
+{
+  "schemaVersion": 1,
+  "description": "Diferencas aprovadas entre as instrucoes legadas do Codex (adapters/codex/instructions) e as instrucoes neutras do runtime (instructions). Qualquer outra diferenca, ou alteracao de texto que mude um hash, falha em scripts/agent-adapters.test.mjs.",
+  "agents": {
+    "architect": [
+      {
+        "paragraph": 2,
+        "label": "RESPONSABILIDADE",
+        "legacySha256": "e14d11640ed7bb3b16915f38eb616d70e755cc389f0a4d22c4f5f653fab38a9f",
+        "neutralSha256": "e5d7a22b0db3ea724c1f77299db995d01af38b26d3e3008b250d10b03f83937a",
+        "reason": "Exemplos de integracoes futuras atualizados (Codex App Server e Bridge local deixam de ser alvo; runtime proprio e Model Gateway passam a ser). Responsabilidade inalterada."
+      }
+    ],
+    "coordinator": [
+      {
+        "paragraph": 2,
+        "label": "DELEGACAO",
+        "legacySha256": "e020845e3c71c5cb8221e57bc7761f12d5561feb0ebdf2fa6f3dc1d9332978cf",
+        "neutralSha256": "33b876b9cad69480501a8e3ea146fe1a0172da4c8afd07d4901d8fc49b2c87d3",
+        "reason": "Delegacao passa a referir o catalogo neutro (packages/agent-catalog) em vez de .codex/agents. Mesmos nove agentes e mesmas regras."
+      },
+      {
+        "paragraph": 6,
+        "label": "VERIFICACAO DE ESCOPO",
+        "legacySha256": "4f929ba68d7823e947b6b35c062983e6c2ab4673333362828c6c7a55b27361c1",
+        "neutralSha256": "f90ea4387cadf44208801e5d380754a0083ce5b81b12a0f7810db7ec08a56462",
+        "reason": "Substitui o procedimento de snapshot/check do agent-scope-check (especifico do Codex) pela regra do runtime aprovada (B-M1): o Permission Engine DECIDE negar escrita no repositorio original e, sem isolamento, qualquer escrita; ainda nao existe executor que aplique as decisoes, entao a execucao de agentes escritores permanece desabilitada e o bloqueio vai a um humano. Mantem: nenhum resultado aceito sem validacao externa e a declaracao do agente nao vale como evidencia."
+      },
+      {
+        "paragraph": 7,
+        "label": "ARQUIVOS DE GOVERNANCA",
+        "legacySha256": "f4be1d0a9049f39e4a86c584bd1d3c7e0dc3732bb2d3479aba369dd7a6488760",
+        "neutralSha256": "636aea48be96948d3af436fe3c6d4ec4227b0ee1a29d56159b9616f82cf74b10",
+        "reason": "Troca \"definicoes em .codex/\" por catalogo neutro e adaptadores gerados. Mesma lista de protecao; nenhum arquivo deixa de ser governanca."
+      },
+      {
+        "paragraph": 8,
+        "label": "DEPENDENCIAS",
+        "legacySha256": "78659c716b3ff389d59efd3faaf89cab74085f7b4204d09542f804e851726752",
+        "neutralSha256": "dd444147a8bd5d5fb57cb87bfd48f0103a46bb26c2e03f2e17213d533208f195",
+        "reason": "Remove a justificativa ligada ao verificador do Codex; a regra (npm ci antes de build/testes) permanece."
+      },
+      {
+        "paragraph": 9,
+        "label": "SESSOES",
+        "legacySha256": "39219b5e99cd3e6b129d64d2ee04f1dd5a5cbc98660f7fc42f9868773d7f3278",
+        "neutralSha256": "1b402a6a09f4841867742053f67d17bbb8c3889cb0334806323af01d20ecf72e",
+        "reason": "Remove sandbox herdado e flags do Codex. Descreve o estado real (B-M1): permissoes decididas pelo Permission Engine conforme o catalogo, sem executor que as aplique; sem ampliacao por outro agente; somente leitura nunca recebe decisao de escrita."
+      },
+      {
+        "paragraph": 10,
+        "label": "CONSOLIDACAO",
+        "legacySha256": "71935f17055317c53f6f15c63e56bd80b584c30db5b0522a31260dbfbdfc131b",
+        "neutralSha256": "e2fef940eb8c73f860db47a03297eadb4524354eff4f11ca7ebd180664489789",
+        "reason": "\"Saidas do verificador de escopo\" (Codex) vira \"bloqueios de permissao\" do runtime."
+      }
+    ],
+    "devops-engineer": [
+      {
+        "paragraph": 4,
+        "label": "NAO PODE MODIFICAR",
+        "legacySha256": "301824656e5d5445a7c7189276e903a7c28de85699205c46fab3411ff3533602",
+        "neutralSha256": "4a74377f69192e1e7d4bf1ac45d708af1ad567b3f8f9e0f529321ecb830f100b",
+        "reason": "\".codex/\" vira \"catalogo neutro e adaptadores gerados\"; proibicoes inalteradas."
+      },
+      {
+        "paragraph": 6,
+        "label": "VERIFICACAO DE ESCOPO",
+        "legacySha256": "793ea02ef9bc6bb126fe05ed7598e5798eb66b876573bb3327067723255c6a95",
+        "neutralSha256": "2b56cdbeb8f3aec42d40a0f6d7aaf92025a4ba9bdb7afb1a9f28c87815de61a4",
+        "reason": "Procedimento de snapshot/check substituido pela regra do runtime aprovada (B-M1): decisao de negar do Permission Engine, sem executor que a aplique; agentes escritores desabilitados; exigencia de validacao externa."
+      }
+    ],
+    "documentation-engineer": [
+      {
+        "paragraph": 4,
+        "label": "NAO PODE MODIFICAR",
+        "legacySha256": "1ba81f9b686a9143db35e320f52cd9cd5f899dc7431980b610918b1a2b09c16c",
+        "neutralSha256": "e5c11c8ce91fb89df699e4f91d19e5cd5969faf8de0dd465f373bc2695729e6a",
+        "reason": "\".codex/\" vira \"catalogo neutro e adaptadores gerados\"; proibicoes inalteradas."
+      },
+      {
+        "paragraph": 7,
+        "label": "VERIFICACAO DE ESCOPO",
+        "legacySha256": "944478ed2c846249a46e2907dbb7236aa82da56b7fe49219c0ce2b669c416de5",
+        "neutralSha256": "2b56cdbeb8f3aec42d40a0f6d7aaf92025a4ba9bdb7afb1a9f28c87815de61a4",
+        "reason": "Procedimento de snapshot/check substituido pela regra do runtime aprovada (B-M1): decisao de negar do Permission Engine, sem executor que a aplique; agentes escritores desabilitados; exigencia de validacao externa."
+      }
+    ],
+    "qa-engineer": [
+      {
+        "paragraph": 4,
+        "label": "NAO PODE MODIFICAR",
+        "legacySha256": "d06848e2aa57c57f4f8cbab355f71aa2895d1d8143956d2fb2512b169df09a9e",
+        "neutralSha256": "6451746e0077049c8d94f87016f1a0be24e3743367d9d824a17e9d8e89f801b6",
+        "reason": "\".codex/\" vira \"catalogo neutro e adaptadores gerados\"; proibicoes inalteradas."
+      },
+      {
+        "paragraph": 6,
+        "label": "VERIFICACAO DE ESCOPO",
+        "legacySha256": "be682044931f698c5ef854e87a87d6d844e390d67d0641dce3360f027162731d",
+        "neutralSha256": "2b56cdbeb8f3aec42d40a0f6d7aaf92025a4ba9bdb7afb1a9f28c87815de61a4",
+        "reason": "Procedimento de snapshot/check substituido pela regra do runtime aprovada (B-M1): decisao de negar do Permission Engine, sem executor que a aplique; agentes escritores desabilitados; exigencia de validacao externa."
+      }
+    ],
+    "security-reviewer": [
+      {
+        "paragraph": 12,
+        "label": "RESTRICAO DE PERMISSOES",
+        "legacySha256": "619a325b67ffa2a1213786765127eaf3faec296c09eeaa59680104d6a05f8058",
+        "neutralSha256": "0e21ac606504df72600b34a25302360f04a1806a9285b80af21087d07295621e",
+        "reason": "\"Sandbox somente leitura\" (Codex) vira \"permissao de leitura\", sem atribuir ao runtime uma concessao que ainda nao executa; restricao inalterada."
+      }
+    ]
+  }
+}

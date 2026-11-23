@@ -1,21 +1,18 @@
+// ARQUIVO GERADO — NÃO EDITAR.
+// Fonte: packages/agent-catalog/agents.json
+// Gerar:  node scripts/generate-agent-adapters.mjs --write
+// Conferir: node scripts/generate-agent-adapters.mjs --check
 import type { AgentDefinition } from "../types/agent";
 
 /**
- * Catálogo único dos agentes exibidos no dashboard.
- *
- * Regras (verificadas por `scripts/agent-catalog.test.mjs`):
- * - cada `id` corresponde a `.codex/agents/<id>.toml`, com `name` igual ao `id`;
- * - todo agente definido em `.codex/agents` está neste catálogo (sem agentes
- *   apenas visuais e sem definições órfãs);
- * - `codexDescription` é idêntica ao `description` do TOML;
- * - agentes `read-only` documentam no TOML a execução com
- *   `--sandbox read-only -c approval_policy="never"`;
- * - `writeScope` é coerente com `accessMode` (vazio para `read-only`, `["**"]`
- *   para `workspace-write`, globs específicos para os demais) e cada glob dos
- *   modos com escopo restrito aparece literalmente nas instruções do TOML.
+ * Cópia gerada do catálogo neutro para o dashboard (sem as instruções dos
+ * agentes, que não entram no bundle público). A consistência com
+ * `packages/agent-catalog` é verificada por `scripts/agent-adapters.test.mjs`.
  *
  * Este arquivo usa somente `import type`, para poder ser importado diretamente
- * pelo Node (remoção de tipos) no teste de consistência.
+ * pelo Node (remoção de tipos) nos testes. O formato literal de `accessMode` e
+ * `writeScope` (uma chave por linha, com quatro espaços) é lido por
+ * `scripts/agent-scope-check.mjs`; não altere o gerador sem conferir esse leitor.
  */
 export const agentCatalog = [
   {
@@ -31,7 +28,7 @@ export const agentCatalog = [
       "Delegar implementação e revisão independente",
       "Consolidar resultados e evidências",
     ],
-    codexDescription:
+    description:
       "Coordena tarefas complexas por meio de planejamento, delegacao e consolidacao de evidencias.",
   },
   {
@@ -47,7 +44,7 @@ export const agentCatalog = [
       "Executar as verificações relevantes",
       "Informar arquivos alterados, comandos e resultados",
     ],
-    codexDescription:
+    description:
       "Implementa mudancas pequenas e bem delimitadas, com verificacao e evidencias.",
   },
   {
@@ -63,7 +60,7 @@ export const agentCatalog = [
       "Verificar escopo, regressões, segurança e cobertura de validação",
       "Reportar achados priorizados com evidências",
     ],
-    codexDescription:
+    description:
       "Revisa alteracoes de forma independente, priorizando escopo, riscos e evidencias.",
   },
   {
@@ -79,7 +76,7 @@ export const agentCatalog = [
       "Diferenciar vulnerabilidades comprovadas de hipóteses",
       "Classificar achados por severidade com evidência e correção recomendada",
     ],
-    codexDescription:
+    description:
       "Revisor independente de seguranca do Agente.s. Analisa arquitetura, codigo, dependencias, dados, APIs, infraestrutura e as 16 categorias do padrao global.",
   },
   {
@@ -95,7 +92,7 @@ export const agentCatalog = [
       "Comparar alternativas com riscos, custos e critérios de decisão",
       "Propor registros de decisão sem alterar arquivos",
     ],
-    codexDescription:
+    description:
       "Arquiteto somente leitura do Agente.s: avalia decisoes tecnicas, contratos entre componentes e trade-offs, sem alterar arquivos.",
   },
   {
@@ -119,7 +116,7 @@ export const agentCatalog = [
       "Reportar defeitos sem corrigir código de produção",
       "Fornecer evidências reproduzíveis",
     ],
-    codexDescription:
+    description:
       "Engenheiro de qualidade do Agente.s: projeta, escreve e executa testes, com escrita restrita a testes e fixtures autorizados.",
   },
   {
@@ -135,7 +132,7 @@ export const agentCatalog = [
       "Fixar actions por SHA verificado com permissões mínimas",
       "Propor, sem aplicar, mudanças fora do escopo; sem push, deploy ou PR",
     ],
-    codexDescription:
+    description:
       "Engenheiro de CI/CD do Agente.s: altera somente workflows do GitHub Actions, sem autorizacao propria para push, deploy, PR ou workflow_dispatch.",
   },
   {
@@ -151,7 +148,7 @@ export const agentCatalog = [
       "Registrar somente resultados com evidência verificada",
       "Separar controles documentados, implementados e testados",
     ],
-    codexDescription:
+    description:
       "Engenheiro de documentacao do Agente.s: mantem README e docs alinhados a evidencias verificadas, sem alterar codigo, testes, CI ou politicas.",
   },
   {
@@ -167,7 +164,7 @@ export const agentCatalog = [
       "Avaliar contraste, movimento reduzido e consistência da interface",
       "Separar o que foi medido do que depende de leitor de tela real",
     ],
-    codexDescription:
+    description:
       "Revisor somente leitura de acessibilidade e UX do Agente.s: avalia WCAG, teclado, semantica, contraste e consistencia da interface.",
   },
 ] as const satisfies readonly AgentDefinition[];

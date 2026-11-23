@@ -1,0 +1,18 @@
+{
+  "name": "@agentes/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Runtime proprio do Agente.s: API REST + SSE local, Event Store em memoria e Permission Engine. Nao executa agentes nesta etapa.",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "start": "node src/main.ts",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "typecheck": "node ../dashboard/node_modules/typescript/bin/tsc -p tsconfig.json"
+  },
+  "devDependencies": {
+    "@types/node": "^24.19.2"
+  }
+}

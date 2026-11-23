@@ -16,16 +16,17 @@ export type AgentAnimation =
   | "error";
 
 /**
- * Equipe (zona de trabalho) do agente. Inclui as equipes previstas para os
- * papéis planejados (Architect, QA, DevOps, Documentation, Accessibility & UX),
- * que só entram no catálogo quando tiverem definição real em `.codex/agents`.
+ * Equipe (zona de trabalho) do agente. Deve coincidir com `AGENT_TEAMS` em
+ * `packages/agent-catalog/src/catalog.ts` (verificado por teste).
  */
 export type AgentTeam = "planning" | "build" | "quality" | "knowledge";
 
 /**
- * Perfil de acesso DOCUMENTADO do papel. Não é um controle técnico: no Codex,
- * o sandbox e as aprovações vêm da sessão pai (ver README, "Revisões somente
- * leitura").
+ * Perfil de acesso DECLARADO do papel (deve coincidir com `ACCESS_MODES` em
+ * `packages/agent-catalog/src/catalog.ts`). Não é, sozinho, um controle
+ * técnico: a aplicação caberá ao Permission Engine do runtime próprio. Enquanto
+ * o Codex for usado, o sandbox e as aprovações vêm da sessão pai (ver README,
+ * "Revisões somente leitura").
  * - read-only: não altera arquivos.
  * - workspace-write: altera arquivos do workspace dentro do escopo autorizado.
  * - tests-only: escreve somente testes e fixtures autorizados (QA Engineer).
@@ -40,9 +41,13 @@ export type AgentAccessMode =
   | "ci-cd-without-publish"
   | "docs-only";
 
-/** Definição estática de um agente: fonte única usada pelo dashboard. */
+/**
+ * Definição estática de um agente no dashboard. A fonte única é o catálogo
+ * neutro (`packages/agent-catalog`); `src/data/agentCatalog.ts` é gerado a
+ * partir dele por `scripts/generate-agent-adapters.mjs`.
+ */
 export interface AgentDefinition {
-  /** Identificador; igual ao `name` em `.codex/agents/<id>.toml`. */
+  /** Identificador estável do agente no catálogo neutro. */
   id: string;
   /** Nome exibido no dashboard. */
   name: string;
@@ -67,10 +72,11 @@ export interface AgentDefinition {
   /** Responsabilidades resumidas do papel. */
   responsibilities: readonly string[];
   /**
-   * Cópia literal do campo `description` do TOML do Codex. O teste
-   * `scripts/agent-catalog.test.mjs` falha se as duas divergirem.
+   * Descrição curta do papel, vinda do catálogo neutro
+   * (`packages/agent-catalog/agents.json`). O adaptador temporário do Codex
+   * usa o mesmo texto no campo `description` do TOML.
    */
-  codexDescription: string;
+  description: string;
 }
 
 /** Estado de execução (DEMO ou futuro runtime) de um agente do catálogo. */

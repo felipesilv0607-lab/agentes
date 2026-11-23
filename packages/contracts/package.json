@@ -1,0 +1,13 @@
+{
+  "name": "@agentes/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Contratos de eventos e da API do Agente.s (TypeScript puro, sem dependencias).",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

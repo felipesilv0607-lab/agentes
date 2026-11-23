@@ -1,0 +1,14 @@
+{
+  "name": "@agentes/agent-catalog",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Catalogo neutro dos agentes do Agente.s: metadados, instrucoes e adaptadores gerados.",
+  "exports": {
+    ".": "./src/catalog.ts",
+    "./adapters": "./src/adapters.ts"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "agents": {
+    "accessibility-ux-reviewer": {
+      "header": "# Restricao tecnica (nao textual): segundo a documentacao oficial do Codex, um\n# arquivo de agente personalizado NAO substitui `sandbox_mode` nem\n# `approval_policy`; o subagente herda o sandbox da sessao pai. Por isso este\n# arquivo nao declara `sandbox_mode` (seria ignorado e daria falsa garantia).\n# Execute este agente em uma sessao pai independente, somente leitura e sem aprovacoes:\n#   codex exec --sandbox read-only -c approval_policy=\"never\" \"<pedido ao accessibility-ux-reviewer>\"\n# Ver README.md, secao \"Revisoes somente leitura\".\n",
+      "trailingNewline": true
+    },
+    "architect": {
+      "header": "# Restricao tecnica (nao textual): segundo a documentacao oficial do Codex, um\n# arquivo de agente personalizado NAO substitui `sandbox_mode` nem\n# `approval_policy`; o subagente herda o sandbox da sessao pai. Por isso este\n# arquivo nao declara `sandbox_mode` (seria ignorado e daria falsa garantia).\n# Execute este agente em uma sessao pai independente, somente leitura e sem aprovacoes:\n#   codex exec --sandbox read-only -c approval_policy=\"never\" \"<pedido ao architect>\"\n# Ver README.md, secao \"Revisoes somente leitura\".\n",
+      "trailingNewline": true
+    },
+    "code-reviewer": {
+      "header": "# Restricao tecnica (nao textual): segundo a documentacao oficial do Codex, um\n# arquivo de agente personalizado NAO substitui `sandbox_mode` nem\n# `approval_policy`; o subagente herda o sandbox da sessao pai. Por isso este\n# arquivo nao declara `sandbox_mode` (seria ignorado e daria falsa garantia).\n# Execute revisoes a partir de uma sessao pai somente leitura e sem aprovacoes:\n#   codex exec --sandbox read-only -c approval_policy=\"never\" \"<pedido de revisao ao code-reviewer>\"\n# Ver README.md, secao \"Revisoes somente leitura\".\n",
+      "trailingNewline": true
+    },
+    "coordinator": {
+      "header": "",
+      "trailingNewline": true
+    },
+    "developer": {
+      "header": "",
+      "trailingNewline": true
+    },
+    "devops-engineer": {
+      "header": "# Sessao pai: o subagente herda o sandbox da sessao que o executa; este arquivo\n# nao altera sandbox nem aprovacoes. Execute em sessao de escrita no workspace,\n# sem aprovacoes de escalonamento:\n#   codex exec --sandbox workspace-write -c approval_policy=\"never\" \"<pedido ao devops-engineer>\"\n# O sandbox NAO restringe a escrita aos caminhos abaixo. O coordinator (ou um\n# humano) cria um snapshot antes da tarefa e verifica o escopo depois dela\n# (deteccao, nao prevencao):\n#   node <diretorio do snapshot>/agent-scope-check.mjs check --agent devops-engineer --snapshot <diretorio do snapshot>/snapshot.json --sha256 <hash>\n",
+      "trailingNewline": true
+    },
+    "documentation-engineer": {
+      "header": "# Sessao pai: o subagente herda o sandbox da sessao que o executa; este arquivo\n# nao altera sandbox nem aprovacoes. Execute em sessao de escrita no workspace,\n# sem aprovacoes de escalonamento:\n#   codex exec --sandbox workspace-write -c approval_policy=\"never\" \"<pedido ao documentation-engineer>\"\n# O sandbox NAO restringe a escrita aos caminhos abaixo. O coordinator (ou um\n# humano) cria um snapshot antes da tarefa e verifica o escopo depois dela\n# (deteccao, nao prevencao):\n#   node <diretorio do snapshot>/agent-scope-check.mjs check --agent documentation-engineer --snapshot <diretorio do snapshot>/snapshot.json --sha256 <hash>\n",
+      "trailingNewline": true
+    },
+    "qa-engineer": {
+      "header": "# Sessao pai: o subagente herda o sandbox da sessao que o executa; este arquivo\n# nao altera sandbox nem aprovacoes. Execute em sessao de escrita no workspace,\n# sem aprovacoes de escalonamento:\n#   codex exec --sandbox workspace-write -c approval_policy=\"never\" \"<pedido ao qa-engineer>\"\n# O sandbox NAO restringe a escrita aos caminhos abaixo. O coordinator (ou um\n# humano) cria um snapshot antes da tarefa e verifica o escopo depois dela\n# (deteccao, nao prevencao):\n#   node <diretorio do snapshot>/agent-scope-check.mjs check --agent qa-engineer --snapshot <diretorio do snapshot>/snapshot.json --sha256 <hash>\n",
+      "trailingNewline": true
+    },
+    "security-reviewer": {
+      "header": "# Restricao tecnica (nao textual): segundo a documentacao oficial do Codex, um\n# arquivo de agente personalizado NAO substitui `sandbox_mode` nem\n# `approval_policy`; o subagente herda o sandbox da sessao pai. Por isso este\n# arquivo nao declara `sandbox_mode` (seria ignorado e daria falsa garantia).\n# Execute revisoes a partir de uma sessao pai somente leitura e sem aprovacoes:\n#   codex exec --sandbox read-only -c approval_policy=\"never\" \"<pedido de revisao ao security-reviewer>\"\n# Ver README.md, secao \"Revisoes somente leitura\".\n",
+      "trailingNewline": false
+    }
+  }
+}

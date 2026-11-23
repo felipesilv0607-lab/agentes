@@ -8,7 +8,9 @@
 
 Interface demonstrativa com quatro áreas: monitoramento (escritório virtual 3D), segurança, fluxo de trabalho e logs/evidências.
 
-Nesta etapa não há API, banco de dados, autenticação, persistência, Bridge local, integração com o Codex App Server nem execução de agentes. Todos os dados são sintéticos e identificados como DEMO.
+> Documento histórico da fase F0 (dashboard). O estado atual do projeto, inclusive o runtime local dos Blocos 1 e 2, está em `README.md` e em `docs/architecture/adr-0001-runtime-proprio.md`.
+
+Nesta etapa (F0) não havia API, banco de dados, autenticação, persistência, Bridge local, integração com o Codex App Server nem execução de agentes. Todos os dados são sintéticos e identificados como DEMO.
 
 ## 2. Ativos e dados
 

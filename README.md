@@ -2,20 +2,28 @@
 
 Agente.s é a base de uma fábrica de software assistida por IA: uma equipe de agentes especializados que trabalha com instruções, limites claros e evidências de execução.
 
-## Estado atual (fase F0)
+## Estado atual (F0 e migração para runtime próprio — Blocos 1 e 2 consolidados)
 
-| Componente | Estado real |
+A direção aprovada é migrar gradualmente do Codex para um runtime próprio (`docs/architecture/adr-0001-runtime-proprio.md`; mapa em `docs/project-map.md`). **Nenhum agente autônomo executa**: o runtime ainda não chama modelos, não executa ferramentas e não escreve arquivos.
+
+Legenda: **Implementado e testado** (código com testes automatizados executados localmente e configurados no CI; a execução remota do CI atualizado ainda está pendente); **Parcial** (existe, mas sem a integração que o torna efetivo); **Planejado** (decisão aprovada, sem código); **Pendente de validação independente** (sem revisão independente de código e de segurança).
+
+| Componente | Estado |
 |---|---|
-| Regras compartilhadas (`AGENTS.md`) e padrões (`standards/`) | Documentados; testes verificam a presença dos requisitos no texto, não a aplicação técnica dos controles |
-| Agentes Codex em `.codex/agents/` | Nove definições (ver "Agentes"), com catálogo único no dashboard e teste de consistência |
-| Dashboard (`apps/dashboard`) | React/Vite com dados **sintéticos (DEMO)**, incluindo escritório virtual 3D e seletor acessível por teclado com os nove agentes. A cena 3D ainda exibe somente os quatro primeiros agentes (ver "Limitação da cena 3D") |
-| Contrato de eventos (`docs/event-contract.md`) | Proposta técnica; validador existe somente nos testes |
-| CI/CD (`.github/workflows/deploy.yml`) | Testes, auditoria de dependências, typecheck e build antes de publicar no GitHub Pages |
-| Bridge local, integração com Codex App Server, autenticação, persistência e execução real de agentes | **Não implementados** |
+| Catálogo neutro (`packages/agent-catalog`): nove agentes, instruções neutras do runtime e cópia legada congelada do Codex | Implementado e testado |
+| Adaptadores gerados: `.codex/agents/*.toml` (temporários; idênticos byte a byte aos TOMLs do working tree antes da migração, conforme SHA-256 registrados pelo implementador; só 3 deles têm referência independente no histórico do Git) e `apps/dashboard/src/data/agentCatalog.ts` | Implementado e testado |
+| Contratos (`packages/contracts`): eventos e API REST/SSE | Implementado e testado; nenhum produtor real de eventos |
+| Runtime (`apps/runtime`): API REST + SSE somente leitura em loopback, token local, Event Store em memória | Implementado e testado (uso local) |
+| Permission Engine (negação por padrão) | **Parcial**: decide e é testado, mas nenhum executor o consulta ainda; não é barreira comprovada para execução real. Listas de governança e de leitura com lacunas conhecidas (A-M3), **adiadas por decisão humana e não corrigidas** |
+| CI (`.github/workflows/deploy.yml`): testes, paridade, typecheck, auditoria e testes do runtime; executa em `push` na `main`, `pull_request` para a `main` (sem publicar) e `workflow_dispatch` | Implementado e validado localmente; **execução no GitHub pendente** (depende de commit e push; ver "Caminho de validação do CI") |
+| Dashboard (`apps/dashboard`): dados **sintéticos (DEMO)**, escritório virtual 3D, seletor com os nove agentes | Implementado; a cena 3D exibe somente quatro agentes (ver "Limitação da cena 3D") |
+| Regras (`AGENTS.md`) e padrões (`standards/`) | Documentados; os testes verificam o texto, não a aplicação técnica |
+| Model Gateway (Bloco 3), integração do dashboard com o runtime (Bloco 4), execução de tarefas e ferramentas (Bloco 5), isolamento Docker (Bloco 6), PostgreSQL e VPS (Bloco 7) | Planejado; **não implementado** |
+| Blocos 1 e 2 como um todo | **Pendente de validação independente** |
 
 ## Agentes
 
-| Agente | Responsabilidade | Modo | Pode alterar | Sessão pai |
+| Agente | Responsabilidade | Modo | Pode alterar | Sessão pai (Codex legado) |
 |---|---|---|---|---|
 | `coordinator` | Planeja, delega, evita conflitos de escrita e consolida evidências | Escrita no workspace | Somente com autorização explícita | Escrita no workspace |
 | `developer` | Implementa mudanças de escopo definido | Escrita no workspace | Escopo autorizado da tarefa | Escrita no workspace |
@@ -30,7 +38,13 @@ Agente.s é a base de uma fábrica de software assistida por IA: uma equipe de a
 - **Nenhum agente tem autoridade própria para commit, push, PR, deploy ou `workflow_dispatch`.** O `devops-engineer` também não pode alterar `apps/dashboard/vite.config.ts`, dependências nem configurações do repositório.
 - Responsabilidades, limites e permissões completos: `standards/AI-AGENT-POLICY.md`, seção 2.
 - As definições contêm instruções em texto. Elas não criam um serviço, painel, dependência ou execução automática.
-- O catálogo do dashboard (`apps/dashboard/src/data/agentCatalog.ts`) é a fonte única dos agentes exibidos. `scripts/agent-catalog.test.mjs` verifica a correspondência com `.codex/agents/`, os escopos de escrita e a cobertura na política.
+- A fonte única dos agentes é o catálogo neutro `packages/agent-catalog`: metadados em `agents.json` e **instruções neutras** em `instructions/<id>.md`, as únicas que o runtime carrega. A cópia **legada congelada** das instruções do Codex fica em `adapters/codex/instructions/<id>.md` e só gera os TOMLs. As 14 diferenças permitidas entre as duas versões estão em `adapters/codex/instruction-differences.json` (parágrafo, SHA-256 dos dois textos e justificativa); qualquer outra diferença falha no gerador e nos testes.
+- O catálogo do dashboard (`apps/dashboard/src/data/agentCatalog.ts`, sem instruções) e os TOMLs de `.codex/agents/` são **gerados** por `node scripts/generate-agent-adapters.mjs --write` e conferidos por `--check`. Para alterar um agente, edite o catálogo neutro e regenere; não edite os arquivos gerados.
+- `scripts/agent-adapters.test.mjs` verifica o catálogo neutro, a equivalência legado × neutro e a paridade byte a byte dos adaptadores; `scripts/agent-catalog.test.mjs` verifica a correspondência do catálogo do dashboard com `.codex/agents/`, os escopos de escrita e a cobertura na política.
+
+## Uso legado com o Codex (durante a transição)
+
+Enquanto o runtime próprio não executa agentes, as nove definições continuam utilizáveis no Codex por meio dos TOMLs gerados. Esta seção descreve **somente** esse uso legado; os procedimentos abaixo não se aplicam ao runtime próprio.
 
 ### Sessões por agente
 
@@ -87,11 +101,9 @@ Saídas: `0` sem violações; `1` com violações; `2` diante de erro, estado n�
 - **falsos positivos possíveis no uso real** (tratados como violação ou erro até revisão humana): `fetch` automático de uma IDE (altera `refs/remotes`); extensões que escrevem em `.git/config`; arquivos temporários do Vite (`apps/dashboard/vite.config.ts.timestamp-*.mjs`) presentes durante um build; build ou testes executados durante a tarefa que gravem fora das exclusões técnicas; a configuração `safe.directory` global é ignorada, então um repositório de outro dono faz o verificador falhar (saída `2`);
 - o verificador só é válido a partir de um commit-base que já o contenha.
 
-Os testes `scripts/agent-catalog.test.mjs` e `scripts/agent-scope-check.test.mjs` são executados com `node --test <arquivo>` e **ainda não fazem parte do workflow de CI**; essa integração será avaliada separadamente.
+Os testes do verificador (`scripts/agent-scope-check.test.mjs`) rodam no CI em job separado (`scope-checker-tests`), que **não** bloqueia a publicação enquanto a execução em Linux não for comprovadamente estável.
 
-### Limitação da cena 3D
-
-O seletor e o inspetor do escritório virtual exibem os nove agentes, mas a cena 3D ainda tem quatro estações fixas e exibe somente os quatro primeiros agentes do catálogo (`coordinator`, `developer`, `code-reviewer`, `security-reviewer`). A cena será adaptada para todos os agentes na etapa E5.
+**Papel do verificador na migração:** o `agent-scope-check` é uma ferramenta de **detecção auxiliar** para tarefas executadas no Codex. Ele **não** é barreira de segurança do runtime próprio e não receberá novas responsabilidades de proteção; a aplicação de permissões caberá ao Permission Engine (negação por padrão) e ao isolamento da Arquitetura B. O catálogo neutro (`packages/agent-catalog/**`) não está na lista de arquivos protegidos do verificador (ver ADR 0001, "Consequências e riscos").
 
 ### Revisões somente leitura
 
@@ -118,12 +130,54 @@ Em sessões interativas (CLI, app ou IDE):
 
 A combinação `--sandbox read-only -c approval_policy="never"` foi aceita pelo Codex CLI 0.153.4 (`codex doctor` reporta `approval policy: Never`). O bloqueio de escrita do sandbox `read-only` foi verificado localmente com `codex sandbox` (Windows). O **teste ponta a ponta com os subagentes revisores ainda está pendente** e nenhuma proteção efetiva dos revisores deve ser declarada antes dele.
 
+## Limitação da cena 3D
+
+O seletor e o inspetor do escritório virtual exibem os nove agentes, mas a cena 3D ainda tem quatro estações fixas e exibe somente os quatro primeiros agentes do catálogo (`coordinator`, `developer`, `code-reviewer`, `security-reviewer`). A cena será adaptada para todos os agentes na etapa E5.
+
+## Runtime local (Bloco 2)
+
+```text
+cd apps/runtime
+npm ci --ignore-scripts                      # somente @types/node (desenvolvimento)
+$env:AGENTES_RUNTIME_TOKEN = "<token>"       # PowerShell; gere com:
+# node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
+npm start                                    # http://127.0.0.1:8787
+```
+
+| Rota | Autenticação | Conteúdo |
+|---|---|---|
+| `GET /health` | não | `{"status":"ok"}` |
+| `GET /api/agents`, `GET /api/agents/:id` | Bearer | Metadados do catálogo (sem instruções) |
+| `GET /api/state` | Bearer | Estado dos agentes (`AgentsSnapshotDto`; todos em repouso) |
+| `GET /api/events?after=&limit=` | Bearer | Eventos do Event Store em memória |
+| `GET /api/events/stream` | Bearer | SSE: `agents.snapshot` e `heartbeat` |
+
+Controles implementados e testados (`apps/runtime/test/`): escuta só em loopback; token obrigatório (32+ caracteres, comparação em tempo constante, nunca registrado); `Host` validado contra DNS rebinding; `Origin` e CORS só para origens de loopback configuradas (`AGENTES_RUNTIME_ALLOWED_ORIGINS`); somente `GET`; corpo, consulta não documentada e caminhos não canônicos recusados; limites de streams SSE, de buffer por stream (cliente que não lê é desconectado) e de conexões; erros sem detalhes internos. Permission Engine (decisões testadas, **não** aplicadas): ele decide, com negação por padrão, negar publicação, escrita no repositório original, execução de comandos, rede e modelos, e decide negar escrita em workspace isolado enquanto o isolamento (Arquitetura B) estiver desativado, o que não é configurável por ambiente. O Permission Engine decide negar operações não permitidas, mas ainda não existe executor que aplique essas decisões. Até a implementação e validação dessa integração, a execução de agentes escritores permanece desabilitada.
+
+Limitações: o Event Store é em memória (perde dados ao encerrar; cada evento limitado a 64 KiB e o total à capacidade configurada) e ainda não tem produtor real; nenhum executor consulta o Permission Engine ainda, portanto ele **não é barreira comprovada** para execução real; sem TLS nem usuários (uso local apenas); o dashboard ainda não consome o runtime (Bloco 4).
+
 ## Verificações
 
 Na raiz do repositório:
 
 ```text
 node --test scripts/contract.test.mjs scripts/security-baseline.test.mjs scripts/encoding.test.mjs
+node --test scripts/agent-adapters.test.mjs scripts/contracts-package.test.mjs scripts/agent-catalog.test.mjs
+node --test scripts/agent-scope-check.test.mjs   # auxiliar; fora do requisito de publicação
+node scripts/generate-agent-adapters.mjs --check
+node apps/dashboard/node_modules/typescript/bin/tsc -p packages/contracts/tsconfig.json
+node apps/dashboard/node_modules/typescript/bin/tsc -p packages/agent-catalog/tsconfig.json
+```
+
+Os testes importam arquivos TypeScript diretamente; é necessário Node 24 (o mesmo do CI).
+
+Em `apps/runtime` (o typecheck reutiliza o TypeScript 5.9.3 instalado em `apps/dashboard`; rode `npm ci` lá antes):
+
+```text
+npm ci --ignore-scripts
+npm audit --audit-level=high
+npm run typecheck
+npm test
 ```
 
 Em `apps/dashboard`:
@@ -135,9 +189,21 @@ npm run typecheck
 npm run build
 ```
 
-O workflow de deploy executa essas mesmas verificações e só publica, a partir da `main`, se todas passarem.
+O workflow de deploy executa essas verificações no job `verify-and-build` (exceto `agent-scope-check.test.mjs`, que roda no job separado `scope-checker-tests`) e só publica, a partir da `main`, se todas passarem.
 
 **Governança pendente:** a `main` ainda não está protegida e não há verificações obrigatórias em Pull Requests. Uma alteração pode chegar à `main` sem verificação (ela não é publicada, mas fica na branch). O procedimento exato (pré-requisito de verificação em Pull Requests e ruleset `protect-main`) está em `docs/dashboard-risk-assessment.md`, seção "Governança do repositório".
+
+### Caminho de validação do CI
+
+O workflow executa em três eventos:
+
+| Evento | Jobs executados | Publica? |
+|---|---|---|
+| `push` na `main` | `verify-and-build`, `scope-checker-tests`, `deploy` | Sim, se a verificação passar e o commit ainda for o HEAD da `main` |
+| `pull_request` para a `main` | `verify-and-build`, `scope-checker-tests` | **Não**: o `deploy` é excluído explicitamente nesse evento |
+| `workflow_dispatch` | `verify-and-build`, `scope-checker-tests`; `deploy` só na `main` | Somente na `main` |
+
+Caminho recomendado para a primeira validação remota: enviar uma branch e abrir um PR para a `main`. Até lá, a validação é **somente local**.
 
 ## Publicação
 
@@ -145,8 +211,10 @@ O dashboard demonstrativo é publicado no GitHub Pages. O Pages não permite cab
 
 ## Uso previsto
 
-Abra este diretório no Codex e delegue tarefas ao `coordinator`, ao `developer` e aos revisores. Antes de qualquer ação destrutiva, publicação ou alteração sensível, obtenha aprovação humana.
+Hoje: uso legado no Codex (ver "Uso legado com o Codex") e o runtime próprio somente como infraestrutura local de leitura. Quando os Blocos 3 a 6 estiverem implementados, os agentes executarão no runtime próprio, com escrita apenas em workspace isolado, coleta como patch e aprovação humana. Antes de qualquer ação destrutiva, publicação ou alteração sensível, obtenha aprovação humana.
 
 ## Próxima etapa
 
-Concluir as pendências da F0 (teste ponta a ponta do sandbox dos revisores e revisão independente) antes de iniciar a F1: transformar o contrato de eventos em código validável e reutilizável.
+Bloco 3 da migração (ADR 0001): Model Gateway com Ollama (local), OpenAI e Anthropic atrás de uma interface comum, com chaves somente no ambiente do runtime, sem rota HTTP que acione modelos e com a capacidade `model` liberada no Permission Engine somente por decisão explícita.
+
+Pendências que continuam abertas: revisão independente dos Blocos 1 e 2, observação da primeira execução do CI atualizado, teste ponta a ponta do sandbox dos revisores no Codex (F0) e proteção da `main`.

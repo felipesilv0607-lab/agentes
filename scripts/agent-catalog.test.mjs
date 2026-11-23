@@ -149,8 +149,8 @@ function validateCatalog(catalog, tomlFiles) {
       errors.push(`agente do catálogo sem definição em .codex/agents: ${agent.id}`);
       continue;
     }
-    if (agent.codexDescription !== definition.fields.description) {
-      errors.push(`${agent.id}: codexDescription diverge do description de ${definition.fileName}`);
+    if (agent.description !== definition.fields.description) {
+      errors.push(`${agent.id}: description diverge do description de ${definition.fileName}`);
     }
     if (agent.accessMode === "read-only" && !definition.content.includes(READ_ONLY_INVOCATION)) {
       errors.push(`${agent.id}: agente read-only sem a instrução de execução read-only em ${definition.fileName}`);
@@ -241,7 +241,7 @@ const toml = (name, description = `Descricao de ${name}`, extra = "") =>
   `${extra}name = "${name}"\ndescription = "${description}"\n\ndeveloper_instructions = """\nInstrucoes de ${name}.\n"""\n`;
 const agent = (id, overrides = {}) => ({
   id, name: id, role: id, team: "build", accessMode: "workspace-write", writeScope: ["**"], accentColor: "#123456",
-  responsibilities: ["x"], codexDescription: `Descricao de ${id}`, ...overrides,
+  responsibilities: ["x"], description: `Descricao de ${id}`, ...overrides,
 });
 const file = (name, content = toml(name)) => ({ fileName: `${name}.toml`, content });
 
@@ -272,8 +272,8 @@ test("detecta name duplicado em .codex/agents", () => {
 });
 
 test("detecta descrição divergente", () => {
-  assert.deepEqual(validateCatalog([agent("a", { codexDescription: "outra" })], [file("a")]), [
-    "a: codexDescription diverge do description de a.toml",
+  assert.deepEqual(validateCatalog([agent("a", { description: "outra" })], [file("a")]), [
+    "a: description diverge do description de a.toml",
   ]);
 });
 
